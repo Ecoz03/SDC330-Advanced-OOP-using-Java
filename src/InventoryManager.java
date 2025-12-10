@@ -1,3 +1,14 @@
+/*
+Name: Jessie Sosniak
+Date: 10 DEC 2025
+Assignment: SDC330 Course Project
+Details: Acts as the business logic layer for the Game Inventory System.
+Coordinates between the command-line interface (App.java) and the persistence layer (DatabaseHandler.java).
+Provides methods to add, view, update, delete, and search games, while formatting results
+for user readability. Ensures consistent handling of operations and supports future expansion.
+*/
+
+
 public class InventoryManager {
     private final DatabaseHandler dbHandler;
 
@@ -73,4 +84,5 @@ public class InventoryManager {
     public boolean deleteGame(String title) {
         return dbHandler.deleteGame(title);
     }
+
 }
