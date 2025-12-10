@@ -53,5 +53,6 @@ This process ensured the system remained testable, maintainable, and ready for f
 - Error messages are printed to the console to guide the user when invalid input is entered.
 - The system is designed for easy expansion (new platforms, player count types, or features).
 ## Link to Project
-(to be included)
+[GitHub Link](https://github.com/Ecoz03/SDC330-Advanced-OOP-using-Java/releases/tag/Phase-3)
+
 
