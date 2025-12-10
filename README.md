@@ -32,16 +32,16 @@ The Game Inventory System is a menu-driven Java application designed to manage a
 - **Java**: Primary programming language used to implement the application, demonstrating OOP principles (interfaces, abstract classes, inheritance, polymorphism...).
 - **SQL (SQLite)**: Used in DatabaseHandler.java for database schema creation and CRUD operations, enabling persistent storage of game data.
 ## Development Process Used
- **Iterative Approach**: The project was developed using an iterative, modular approach. Core functionality was built first with an emphasis on object-oriented programming principles (interfaces, abstract classes, inheritance, polymorphism). The application was structured with clear separation of concerns:
-    - User Interface Layer (App.java) for menu-driven input and output.
-    - Business Logic Layer (InventoryManager.java) for managing operations and formatting results.
-    - Persistence Layer (DatabaseHandler.java) for SQLite integration to support data storage.
-  Development followed a step-by-step process:
-    - Planning and design of class hierarchies and platform specialization.
-    - Implementation of core features (CRUD and search functions).
-    - Refinement of usability with numbered outputs, case-insensitive commands, and return navigation.
-    - Database stubbing to ensure safe compilation and prepare for persistent storage.
-    - Testing and debugging to validate menu flows, error handling, and extensibility.
+- **Iterative Approach**: The project was developed using an iterative, modular approach. Core functionality was built first with an emphasis on object-oriented programming principles (interfaces, abstract classes, inheritance, polymorphism). The application was structured with clear separation of concerns:
+- User Interface Layer (App.java) for menu-driven input and output.
+- Business Logic Layer (InventoryManager.java) for managing operations and formatting results.
+- Persistence Layer (DatabaseHandler.java) for SQLite integration to support data storage.
+- **Development followed a step-by-step process**:
+- Planning and design of class hierarchies and platform specialization.
+- Implementation of core features (CRUD and search functions).
+- Refinement of usability with numbered outputs, case-insensitive commands, and return navigation.
+- Database stubbing to ensure safe compilation and prepare for persistent storage.
+- Testing and debugging to validate menu flows, error handling, and extensibility.
 This process ensured the system remained testable, maintainable, and ready for future expansion at any point in the process.
 ## Notes
 - Application runs entirely in the terminal with a menu-driven interface.
@@ -54,3 +54,4 @@ This process ensured the system remained testable, maintainable, and ready for f
 - The system is designed for easy expansion (new platforms, player count types, or features).
 ## Link to Project
 (to be included)
+
