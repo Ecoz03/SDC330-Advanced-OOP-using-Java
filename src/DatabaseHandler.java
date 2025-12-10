@@ -2,8 +2,10 @@
 Name: Jessie Sosniak
 Date: 03 DEC 2025
 Assignment: SDC330 Course Project
-Details: Stub for database operations. Safe to compile and run now. 
-         Next week, methods will be implemented with SQLite logic.
+Details: Handles all database operations for the Game Inventory System using SQLite via JDBC.
+Provides methods to create tables, add new games, retrieve game details, list all games,
+search by title or first letter, update game attributes, and delete records. This class
+serves as the persistence layer, ensuring that game data is stored and managed consistently.
 */
 
 import java.sql.*;
@@ -167,4 +169,5 @@ public class DatabaseHandler {
             return false;
         }
     }
+
 }
