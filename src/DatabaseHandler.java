@@ -6,304 +6,165 @@ Details: Stub for database operations. Safe to compile and run now.
          Next week, methods will be implemented with SQLite logic.
 */
 
-import java.sql.*; 
-
-  
-
-public class DatabaseHandler { 
-
-  
-
-    private static final String DB_URL = "jdbc:sqlite:games.db"; 
-
-  
-
-    //Connection 
-
-    public Connection connect() { 
-
-        try { 
-
-            return DriverManager.getConnection(DB_URL); 
-
-        } catch (SQLException e) { 
-
-            System.out.println("[DB] Connection failed: " + e.getMessage()); 
-
-            return null; 
-
-        } 
-
-    } 
-
-  
-
-    public void createTables() { 
-
-        String sql = "CREATE TABLE IF NOT EXISTS Games (" + 
-
-                     "id INTEGER PRIMARY KEY AUTOINCREMENT," + 
-
-                     "title TEXT UNIQUE NOT NULL," + 
-
-                     "platform TEXT NOT NULL," + 
-
-                     "genre TEXT NOT NULL," + 
-
-                     "releaseYear INTEGER," + 
-
-                     "maxPlayers TEXT" + 
-
-                     ");"; 
-
-        try (Connection conn = connect(); 
-
-             Statement stmt = conn.createStatement()) { 
-
-            stmt.execute(sql); 
-
-            System.out.println("[DB] Tables created or verified."); 
-
-        } catch (SQLException e) { 
-
-            System.out.println("[DB] createTables() error: " + e.getMessage()); 
-
-        } 
-
-    } 
-
-  
-
-    //CREATE 
-
-    public boolean addGame(String title, String platform, Integer releaseYear, String maxPlayers, String genre) { 
-
-        String sql = "INSERT INTO Games(title, platform, genre, releaseYear, maxPlayers) VALUES(?,?,?,?,?)"; 
-
-        try (Connection conn = connect(); 
-
-             PreparedStatement pstmt = conn.prepareStatement(sql)) { 
-
-            pstmt.setString(1, title); 
-
-            pstmt.setString(2, platform); 
-
-            pstmt.setString(3, genre); 
-
-            if (releaseYear != null) { 
-
-                pstmt.setInt(4, releaseYear); 
-
-            } else { 
-
-                pstmt.setNull(4, Types.INTEGER); 
-
-            } 
-
-            if (maxPlayers != null) { 
-
-                pstmt.setString(5, maxPlayers); 
-
-            } else { 
-
-                pstmt.setNull(5, Types.VARCHAR); 
-
-            } 
-
-            pstmt.executeUpdate(); 
-
-            return true; 
-
-        } catch (SQLException e) { 
-
-            System.out.println("[DB] addGame() error: " + e.getMessage()); 
-
-            return false; 
-
-        } 
-
-    } 
-
-  
-
-    //READ 
-
-    public String infoGame(String title) { 
-
-        String sql = "SELECT * FROM Games WHERE LOWER(title) = LOWER(?)"; 
-
-        try (Connection conn = connect(); 
-
-             PreparedStatement pstmt = conn.prepareStatement(sql)) { 
-
-            pstmt.setString(1, title); 
-
-            ResultSet rs = pstmt.executeQuery(); 
-
-            if (rs.next()) { 
-
-                return formatGame(rs); 
-
-            } 
-
-        } catch (SQLException e) { 
-
-            System.out.println("[DB] infoGame() error: " + e.getMessage()); 
-
-        } 
-
-        return null; 
-
-    } 
-
-  
-
-    public String infoAllGames() { 
-
-        StringBuilder sb = new StringBuilder(); 
-
-        String sql = "SELECT * FROM Games"; 
-
-        try (Connection conn = connect(); 
-
-             Statement stmt = conn.createStatement(); 
-
-             ResultSet rs = stmt.executeQuery(sql)) { 
-
-            while (rs.next()) { 
-
-                sb.append(formatGame(rs)).append("\n"); 
-
-            } 
-
-        } catch (SQLException e) { 
-
-            System.out.println("[DB] infoAllGames() error: " + e.getMessage()); 
-
-        } 
-
-        return sb.toString(); 
-
-    } 
-
-  
-
-    //UPDATE 
-
-    public boolean updatePlatform(String title, String newPlatform) { 
-
-        return updateField(title, "platform", newPlatform); 
-
-    } 
-
-  
-
-    public boolean updateReleaseYear(String title, Integer newYear) { 
-
-        return updateField(title, "releaseYear", newYear); 
-
-    } 
-
-  
-
-    public boolean updateMaxPlayers(String title, String newMaxPlayers) { 
-
-        return updateField(title, "maxPlayers", newMaxPlayers); 
-
-    } 
-
-  
-
-    public boolean updateGenre(String title, String newGenre) { 
-
-        return updateField(title, "genre", newGenre); 
-
-    } 
-
-  
-
-    private boolean updateField(String title, String field, Object value) { 
-
-        String sql = "UPDATE Games SET " + field + " = ? WHERE LOWER(title) = LOWER(?)"; 
-
-        try (Connection conn = connect(); 
-
-             PreparedStatement pstmt = conn.prepareStatement(sql)) { 
-
-            if (value == null) { 
-
-                pstmt.setNull(1, Types.NULL); 
-
-            } else if (value instanceof Integer) { 
-
-                pstmt.setInt(1, (Integer) value); 
-
-            } else { 
-
-                pstmt.setString(1, value.toString()); 
-
-            } 
-
-            pstmt.setString(2, title); 
-
-            int rows = pstmt.executeUpdate(); 
-
-            return rows > 0; 
-
-        } catch (SQLException e) { 
-
-            System.out.println("[DB] updateField() error: " + e.getMessage()); 
-
-            return false; 
-
-        } 
-
-    } 
-
-  
-
-    //DELETE 
-
-    public boolean deleteGame(String title) { 
-
-        String sql = "DELETE FROM Games WHERE LOWER(title) = LOWER(?)"; 
-
-        try (Connection conn = connect(); 
-
-             PreparedStatement pstmt = conn.prepareStatement(sql)) { 
-
-            pstmt.setString(1, title); 
-
-            int rows = pstmt.executeUpdate(); 
-
-            return rows > 0; 
-
-        } catch (SQLException e) { 
-
-            System.out.println("[DB] deleteGame() error: " + e.getMessage()); 
-
-            return false; 
-
-        } 
-
-    } 
-
-  
-
-    //Helper to format game details 
-
-    private String formatGame(ResultSet rs) throws SQLException { 
-
-        return "Title: " + rs.getString("title") + "\n" + 
-
-               "Platform: " + rs.getString("platform") + "\n" + 
-
-               "Genre: " + rs.getString("genre") + "\n" + 
-
-               "Release Year: " + (rs.getObject("releaseYear") != null ? rs.getInt("releaseYear") : "N/A") + "\n" + 
-
-               "Max Players: " + (rs.getString("maxPlayers") != null ? rs.getString("maxPlayers") : "N/A"); 
-
-    } 
-
-} 
+import java.sql.*;
+
+public class DatabaseHandler {
+    private static final String DB_URL = "jdbc:sqlite:games.db";
+
+    public DatabaseHandler() {
+        try (Connection conn = DriverManager.getConnection(DB_URL)) {
+            if (conn != null) {
+                DatabaseMetaData meta = conn.getMetaData();
+                System.out.println("Connected to database: " + meta.getDriverName());
+            }
+        } catch (SQLException e) {
+            System.out.println("Database connection failed: " + e.getMessage());
+        }
+    }
+
+    public void createTables() {
+        String sql = "CREATE TABLE IF NOT EXISTS Games (" +
+                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                     "title TEXT UNIQUE NOT NULL," +
+                     "platform TEXT NOT NULL," +
+                     "genre TEXT NOT NULL," +
+                     "releaseYear INTEGER," +
+                     "maxPlayers TEXT" +
+                     ");";
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        } catch (SQLException e) {
+            System.out.println("Error creating table: " + e.getMessage());
+        }
+    }
+
+    public boolean addGame(String title, String platform, Integer releaseYear, String maxPlayers, String genre) {
+        String sql = "INSERT INTO Games(title, platform, genre, releaseYear, maxPlayers) VALUES(?,?,?,?,?)";
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, title);
+            pstmt.setString(2, platform);
+            pstmt.setString(3, genre);
+            if (releaseYear != null) pstmt.setInt(4, releaseYear);
+            else pstmt.setNull(4, Types.INTEGER);
+            if (maxPlayers != null && !maxPlayers.isEmpty()) pstmt.setString(5, maxPlayers);
+            else pstmt.setNull(5, Types.VARCHAR);
+            pstmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Error adding game: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public String infoGame(String title) {
+        String sql = "SELECT * FROM Games WHERE title = ?";
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, title);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return "Title: " + rs.getString("title") + "\n" +
+                       "Platform: " + rs.getString("platform") + "\n" +
+                       "Genre: " + rs.getString("genre") + "\n" +
+                       "Release Year: " + rs.getInt("releaseYear") + "\n" +
+                       "Max Players: " + rs.getString("maxPlayers") + "\n\n";
+            }
+        } catch (SQLException e) {
+            System.out.println("Error retrieving game info: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public String infoAllGames() {
+        String sql = "SELECT * FROM Games ORDER BY title ASC";
+        StringBuilder sb = new StringBuilder();
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                sb.append("Title: ").append(rs.getString("title")).append("\n")
+                  .append("Platform: ").append(rs.getString("platform")).append("\n")
+                  .append("Genre: ").append(rs.getString("genre")).append("\n")
+                  .append("Release Year: ").append(rs.getInt("releaseYear")).append("\n")
+                  .append("Max Players: ").append(rs.getString("maxPlayers")).append("\n\n");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error retrieving all games: " + e.getMessage());
+        }
+        return sb.toString();
+    }
+
+    public String searchByFirstLetter(char firstLetter) {
+        String sql = "SELECT * FROM Games WHERE title LIKE ? ORDER BY title ASC";
+        StringBuilder sb = new StringBuilder();
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, firstLetter + "%");
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                sb.append("Title: ").append(rs.getString("title")).append("\n")
+                  .append("Platform: ").append(rs.getString("platform")).append("\n")
+                  .append("Genre: ").append(rs.getString("genre")).append("\n")
+                  .append("Release Year: ").append(rs.getInt("releaseYear")).append("\n")
+                  .append("Max Players: ").append(rs.getString("maxPlayers")).append("\n\n");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error searching games: " + e.getMessage());
+        }
+        return sb.toString();
+    }
+
+    public boolean updatePlatform(String title, String newPlatform) {
+        String sql = "UPDATE Games SET platform = ? WHERE title = ?";
+        return executeUpdate(sql, newPlatform, title);
+    }
+
+    public boolean updateReleaseYear(String title, Integer newYear) {
+        String sql = "UPDATE Games SET releaseYear = ? WHERE title = ?";
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, newYear);
+            pstmt.setString(2, title);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Error updating release year: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updateMaxPlayers(String title, String newMaxPlayers) {
+        String sql = "UPDATE Games SET maxPlayers = ? WHERE title = ?";
+        return executeUpdate(sql, newMaxPlayers, title);
+    }
+
+    public boolean updateGenre(String title, String newGenre) {
+        String sql = "UPDATE Games SET genre = ? WHERE title = ?";
+        return executeUpdate(sql, newGenre, title);
+    }
+
+    public boolean deleteGame(String title) {
+        String sql = "DELETE FROM Games WHERE title = ?";
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, title);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Error deleting game: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean executeUpdate(String sql, String value, String title) {
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, value);
+            pstmt.setString(2, title);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Error executing update: " + e.getMessage());
+            return false;
+        }
+    }
+}

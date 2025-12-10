@@ -48,7 +48,7 @@ public class App {
                 case "4": handleDeleteGame(); break;
                 case "5": handleListAllGames(); break;
                 case "6": handleSearchByFirstLetter(); break;
-                case "7": return; //Exit
+                case "7": return; // Exit
                 default: System.out.println("Invalid selection. Please choose a menu option (1-7).");
             }
             System.out.println(DIVIDER);
@@ -67,210 +67,119 @@ public class App {
         System.out.println(DIVIDER);
     }
 
-    //Submenu Handlers
-    
+    private String readLine(String prompt) {
+        System.out.print(prompt);
+        String input = scanner.nextLine().trim();
+        if (input.equals("<")) return null;
+        System.out.println(); // spacing after input
+        return input;
+    }
+
     private void handleAddGame() {
-        System.out.println("Add Game Submenu (enter '<' at any point to return):");
+        System.out.println(DIVIDER);
+        System.out.println("Add Game Menu");
+        System.out.println(DIVIDER);
 
-        String category = readChoice("Select platform category [PC, PlayStation, Nintendo]: ",
-                                     new String[]{"PC", "PlayStation", "Nintendo"});
-        if (isReturn(category)) return;
+        String title = readLine("Enter title: ");
+        if (title == null) return;
+        String platform = readLine("Enter platform: ");
+        if (platform == null) return;
+        String releaseYearStr = readLine("Enter release year: ");
+        if (releaseYearStr == null) return;
+        Integer releaseYear = Integer.valueOf(releaseYearStr);
+        String maxPlayers = readLine("Enter max players: ");
+        if (maxPlayers == null) return;
+        String genre = readLine("Enter genre: ");
+        if (genre == null) return;
 
-        String platform;
-        switch (normalize(category)) {
-            case "pc":
-                platform = "PC";
-                break;
-            case "playstation":
-                platform = chooseFrom("Choose PlayStation platform [PS1, PS2, PS3, PS4, PS5]: ",
-                                      new String[]{"PS1", "PS2", "PS3", "PS4", "PS5"});
-                if (isReturn(platform)) return;
-                break;
-            case "nintendo":
-                String nCat = readChoice("Nintendo type [Handheld, Console]: ",
-                                         new String[]{"Handheld", "Console"});
-                if (isReturn(nCat)) return;
-                if (normalize(nCat).equals("handheld")) {
-                    platform = chooseFrom("Choose Nintendo handheld [GameBoy, DS, SwitchLite]: ",
-                                          new String[]{"GameBoy", "DS", "SwitchLite"});
-                    if (isReturn(platform)) return;
-                } else {
-                    platform = chooseFrom("Choose Nintendo console [GameCube, Wii, Switch/Switch2]: ",
-                                          new String[]{"GameCube", "Wii", "Switch/Switch2"});
-                    if (isReturn(platform)) return;
-                }
-                break;
-            default:
-                System.out.println("Unexpected category. Returning to main menu.");
-                return;
-        }
-
-        String title = readRequiredText("Enter title: ");
-        if (isReturn(title)) return;
-
-        Integer releaseYear = readOptionalYear("Enter release year (press Enter to skip): ");
-        if (releaseYear == null && wasReturnTriggered) return;
-
-        String maxPlayers = readOptionalMaxPlayers("Enter max players (numeric, 'Single Player', or 'MMO'; press Enter to skip): ");
-        if (maxPlayers == null && wasReturnTriggered) return;
-
-        String genre = readRequiredText("Enter genre: ");
-        if (isReturn(genre)) return;
-
-        boolean added = inventoryManager.addGame(title, platform, releaseYear, maxPlayers, genre);
-        System.out.println(added ? "Game added successfully!" : "A game with that title already exists.");
+        boolean success = inventoryManager.addGame(title, platform, releaseYear, maxPlayers, genre);
+        System.out.println(success ? "Game added successfully.\n" : "Failed to add game.\n");
     }
 
     private void handleViewGame() {
-        System.out.println("View Game Submenu (enter '<' at any point to return):");
-        String title = readRequiredText("Enter title to view: ");
-        if (isReturn(title)) return;
+        System.out.println(DIVIDER);
+        System.out.println("View Game Menu");
+        System.out.println(DIVIDER);
 
-        String details = inventoryManager.viewGameDetails(title);
-        System.out.println(details == null ? "Game not found." : details);
+        String title = readLine("Enter title: ");
+        if (title == null) return;
+
+        System.out.println(inventoryManager.viewGameDetails(title));
     }
-
     private void handleUpdateGame() {
-        System.out.println("Update Game Submenu (enter '<' at any point to return):");
-        String title = readRequiredText("Enter title to update: ");
-        if (isReturn(title)) return;
+        System.out.println(DIVIDER);
+        System.out.println("Update Game Menu");
+        System.out.println(DIVIDER);
 
-        if (!inventoryManager.exists(title)) {
-            System.out.println("Game not found.");
-            return;
+        String title = readLine("Enter title of game to update: ");
+        if (title == null) return;
+
+        System.out.println("1. Update Platform");
+        System.out.println("2. Update Release Year");
+        System.out.println("3. Update Max Players");
+        System.out.println("4. Update Genre");
+        System.out.println(DIVIDER);
+
+        String choice = readLine("Select an option: ");
+        if (choice == null) return;
+
+        boolean success = false;
+        switch (choice.trim()) {
+            case "1":
+                String newPlatform = readLine("Enter new platform: ");
+                if (newPlatform == null) return;
+                success = inventoryManager.updatePlatform(title, newPlatform);
+                break;
+            case "2":
+                String newYearStr = readLine("Enter new release year: ");
+                if (newYearStr == null) return;
+                success = inventoryManager.updateReleaseYear(title, Integer.valueOf(newYearStr));
+                break;
+            case "3":
+    		String newMaxPlayers = readLine("Enter new max players (numeric, Single Player, MMO): ");
+    		if (newMaxPlayers == null) return;
+    		success = inventoryManager.updateMaxPlayers(title, newMaxPlayers);
+    		break;
+            case "4":
+                String newGenre = readLine("Enter new genre: ");
+                if (newGenre == null) return;
+                success = inventoryManager.updateGenre(title, newGenre);
+                break;
+            default:
+                System.out.println("Invalid choice.\n");
         }
-
-        while (true) {
-            System.out.println("Update Fields:");
-            System.out.println("1. Platform");
-            System.out.println("2. Release Year");
-            System.out.println("3. Max Players");
-            System.out.println("4. Genre");
-            System.out.println("5. Done");
-            String choice = readLine("Select an option: ");
-            if (isReturn(choice)) return;
-            if (choice == null) continue;
-
-            switch (choice.trim()) {
-                case "1":
-                    String newPlatform = readRequiredText("Enter new platform: ");
-                    if (isReturn(newPlatform)) return;
-                    System.out.println(inventoryManager.updatePlatform(title, newPlatform) ? "Platform updated." : "Update failed.");
-                    break;
-                case "2":
-                    Integer newYear = readOptionalYear("Enter new release year (press Enter to clear): ");
-                    if (newYear == null && wasReturnTriggered) return;
-                    System.out.println(inventoryManager.updateReleaseYear(title, newYear) ? "Release year updated." : "Update failed.");
-                    break;
-                case "3":
-                    String newMax = readOptionalMaxPlayers("Enter new max players (press Enter to clear): ");
-                    if (newMax == null && wasReturnTriggered) return;
-                    System.out.println(inventoryManager.updateMaxPlayers(title, newMax) ? "Max players updated." : "Update failed.");
-                    break;
-                case "4":
-                    String newGenre = readRequiredText("Enter new genre: ");
-                    if (isReturn(newGenre)) return;
-                    System.out.println(inventoryManager.updateGenre(title, newGenre) ? "Genre updated." : "Update failed.");
-                    break;
-                case "5":
-                    System.out.println("Finished updating.");
-                    return;
-                default:
-                    System.out.println("Invalid selection. Choose 1-5.");
-            }
-        }
+        System.out.println(success ? "Update successful.\n" : "Update failed.\n");
     }
 
     private void handleDeleteGame() {
-        System.out.println("Delete Game Submenu (enter '<' at any point to return):");
-        String title = readRequiredText("Enter title to delete: ");
-        if (isReturn(title)) return;
+        System.out.println(DIVIDER);
+        System.out.println("Delete Game Menu");
+        System.out.println(DIVIDER);
 
-        boolean deleted = inventoryManager.deleteGame(title);
-        System.out.println(deleted ? "Game deleted." : "Game not found.");
+        String title = readLine("Enter title of game to delete: ");
+        if (title == null) return;
+
+        boolean success = inventoryManager.deleteGame(title);
+        System.out.println(success ? "Game deleted successfully.\n" : "Failed to delete game.\n");
     }
 
     private void handleListAllGames() {
-        System.out.println("List All Games Submenu (enter '<' at any point to return):");
-        String ack = readLine("Press Enter to list, or '<' to return: ");
-        if (isReturn(ack)) return;
+        System.out.println(DIVIDER);
+        System.out.println("List All Games");
+        System.out.println(DIVIDER);
 
-        String list = inventoryManager.listAllGames();
-        System.out.println((list == null || list.isEmpty()) ? "No games in inventory." : list);
+        System.out.println(inventoryManager.listAllGames());
     }
 
     private void handleSearchByFirstLetter() {
-        System.out.println("Search Submenu (enter '<' at any point to return):");
-        String letter = readRequiredText("Enter the first letter of the game title: ");
-        if (isReturn(letter)) return;
-        char first = Character.toLowerCase(letter.trim().charAt(0));
-        String results = inventoryManager.searchByFirstLetter(first);
-        System.out.println((results == null || results.isEmpty()) ? 
-            "No games found starting with '" + letter.charAt(0) + "'." : results);
-    }
+        System.out.println(DIVIDER);
+        System.out.println("Search by First Letter");
+        System.out.println(DIVIDER);
 
-    //Input Helpers
+        String input = readLine("Enter first letter: ");
+        if (input == null || input.isEmpty()) return;
+        char firstLetter = input.charAt(0);
 
-    private boolean wasReturnTriggered = false;
-
-    private String readLine(String prompt) {
-        System.out.print(prompt);
-        return scanner.nextLine();
-    }
-
-    private boolean isReturn(String input) {
-        if (input == null) return false;
-        boolean ret = input.trim().equals("<");
-        wasReturnTriggered = ret;
-        return ret;
-    }
-
-    private String normalize(String s) {
-        return s == null ? "" : s.trim().toLowerCase();
-    }
-
-    private String readChoice(String prompt, String[] allowed) {
-        while (true) {
-            String input = readLine(prompt);
-            if (isReturn(input)) return input;
-            for (String option : allowed) {
-                if (normalize(option).equals(normalize(input))) {
-                    return option;
-                }
-            }
-            System.out.println("Invalid choice. Allowed options: " + String.join(", ", allowed));
-        }
-    }
-
-    private String chooseFrom(String prompt, String[] options) {
-        return readChoice(prompt, options);
-    }
-
-    private String readRequiredText(String prompt) {
-        while (true) {
-            String input = readLine(prompt);
-            if (isReturn(input)) return input;
-            if (!input.trim().isEmpty()) return input.trim();
-            System.out.println("This field is required. Please enter a value or '<' to return.");
-        }
-    }
-
-    private Integer readOptionalYear(String prompt) {
-        String input = readLine(prompt);
-        if (isReturn(input)) return null;
-        if (input.trim().isEmpty()) return null;
-        try {
-            return Integer.parseInt(input.trim());
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid year. Please enter a number or press Enter to skip.");
-            return readOptionalYear(prompt);
-        }
-    }
-
-    private String readOptionalMaxPlayers(String prompt) {
-        String input = readLine(prompt);
-        if (isReturn(input)) return null;
-        if (input.trim().isEmpty()) return null;
-        return input.trim();
+        System.out.println(inventoryManager.searchByFirstLetter(firstLetter));
     }
 }
